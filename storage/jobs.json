@@ -1,0 +1,22 @@
+{
+    "jobs": [],
+    "0": {
+        "text": "яяяяяяяяяяяяяяяяяяяяяя",
+        "email": "offer03@yandex.ru",
+        "employer_email": "offer03@yandex.ru",
+        "category": "video",
+        "public_contacts": "9058673781",
+        "status": "active",
+        "created_at": 1745738901,
+        "expires": 1746602901,
+        "token": "9f84997064148eb9679668596729a899",
+        "paid": true,
+        "payment_id": "2f9ff03a-000f-5000-b000-1e066230b94a",
+        "unique_views": 0,
+        "delete_key": "23cba5e886bec6ade91b07c21d17bf27",
+        "creator_ip": "77.75.153.78",
+        "user_agent": "AHC\/2.1",
+        "image": null,
+        "image_token": null
+    }
+}
