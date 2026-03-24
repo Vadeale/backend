@@ -42,4 +42,33 @@ Set `VITE_API_BASE_URL` if backend runs on a different host/port.
 2. Log in with the same credentials.
 3. Verify "Личный кабинет" shows the user login.
 4. Click logout and verify user session is removed.
-# backend
+
+## GitHub Secrets for CI/CD
+
+Add the following secrets in the `backend` repository:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PORT`
+- `DEPLOY_SSH_KEY`
+- `PORT`
+- `STORAGE_ROOT`
+- `YOOKASSA_SHOP_ID`
+- `YOOKASSA_SECRET_KEY`
+- `PAYMENT_RETURN_URL`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+- `DB_SYNCHRONIZE`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+
+Add the following secrets in the `frontend` repository:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PORT`
+- `DEPLOY_SSH_KEY`
+- `VITE_API_BASE_URL`

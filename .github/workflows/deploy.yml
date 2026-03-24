@@ -12,16 +12,46 @@ jobs:
     steps:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          PORT: ${{ secrets.PORT }}
+          STORAGE_ROOT: ${{ secrets.STORAGE_ROOT }}
+          YOOKASSA_SHOP_ID: ${{ secrets.YOOKASSA_SHOP_ID }}
+          YOOKASSA_SECRET_KEY: ${{ secrets.YOOKASSA_SECRET_KEY }}
+          PAYMENT_RETURN_URL: ${{ secrets.PAYMENT_RETURN_URL }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_SYNCHRONIZE: ${{ secrets.DB_SYNCHRONIZE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
+          envs: PORT,STORAGE_ROOT,YOOKASSA_SHOP_ID,YOOKASSA_SECRET_KEY,PAYMENT_RETURN_URL,DB_HOST,DB_PORT,DB_USER,DB_PASSWORD,DB_NAME,DB_SYNCHRONIZE,JWT_SECRET,JWT_EXPIRES_IN
           script: |
             set -e
             cd /var/www/zadashka/backend
             git fetch --all
             git reset --hard origin/main
+            cat > .env <<EOF
+            PORT=${PORT}
+            STORAGE_ROOT=${STORAGE_ROOT}
+            YOOKASSA_SHOP_ID=${YOOKASSA_SHOP_ID}
+            YOOKASSA_SECRET_KEY=${YOOKASSA_SECRET_KEY}
+            PAYMENT_RETURN_URL=${PAYMENT_RETURN_URL}
+            DB_HOST=${DB_HOST}
+            DB_PORT=${DB_PORT}
+            DB_USER=${DB_USER}
+            DB_PASSWORD=${DB_PASSWORD}
+            DB_NAME=${DB_NAME}
+            DB_SYNCHRONIZE=${DB_SYNCHRONIZE}
+            JWT_SECRET=${JWT_SECRET}
+            JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+            EOF
             docker compose up -d
             npm ci
             npm run build
