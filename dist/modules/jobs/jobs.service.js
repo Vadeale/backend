@@ -67,10 +67,34 @@ let JobsService = class JobsService {
         this.storage.saveJobs(envelope);
         return { token };
     }
+    attachPaymentId(token, paymentId) {
+        const envelope = this.storage.readJobs();
+        envelope.jobs = envelope.jobs.map((item) => (item.token === token ? { ...item, payment_id: paymentId } : item));
+        this.storage.saveJobs(envelope);
+    }
     activateByToken(token) {
         const envelope = this.storage.readJobs();
         envelope.jobs = envelope.jobs.map((item) => item.token === token ? { ...item, status: 'active', paid: true, created_at: Math.floor(Date.now() / 1000) } : item);
         this.storage.saveJobs(envelope);
+    }
+    activateByPaymentId(paymentId) {
+        const envelope = this.storage.readJobs();
+        let found = false;
+        envelope.jobs = envelope.jobs.map((item) => {
+            if (item.payment_id !== paymentId) {
+                return item;
+            }
+            found = true;
+            if (item.status === 'active') {
+                return item;
+            }
+            return { ...item, status: 'active', paid: true, created_at: Math.floor(Date.now() / 1000) };
+        });
+        if (!found) {
+            return 'not_found';
+        }
+        this.storage.saveJobs(envelope);
+        return 'active';
     }
     activeCount() {
         return this.list(1, Number.MAX_SAFE_INTEGER, 'all').total;

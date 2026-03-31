@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { IsNotEmpty, IsString } from 'class-validator';
 import type { Request } from 'express';
 import { PaymentsService } from './payments.service';
@@ -21,6 +21,12 @@ class CreatePaymentBody {
   token!: string;
 }
 
+class ConfirmPaymentQuery {
+  @IsString()
+  @IsNotEmpty()
+  payment_id!: string;
+}
+
 @Controller('api/payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
@@ -34,5 +40,10 @@ export class PaymentsController {
   webhook(@Body() body: { event?: string; object?: { metadata?: { token?: string } } }, @Req() request: Request) {
     this.paymentsService.signDebugPayload(JSON.stringify(request.body));
     return this.paymentsService.processWebhook(body);
+  }
+
+  @Get('confirm')
+  confirm(@Query() query: ConfirmPaymentQuery) {
+    return this.paymentsService.confirmPayment(query.payment_id);
   }
 }

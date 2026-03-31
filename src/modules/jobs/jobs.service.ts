@@ -62,12 +62,38 @@ export class JobsService {
     return { token };
   }
 
+  attachPaymentId(token: string, paymentId: string): void {
+    const envelope = this.storage.readJobs();
+    envelope.jobs = envelope.jobs.map((item) => (item.token === token ? { ...item, payment_id: paymentId } : item));
+    this.storage.saveJobs(envelope);
+  }
+
   activateByToken(token: string): void {
     const envelope = this.storage.readJobs();
     envelope.jobs = envelope.jobs.map((item) =>
       item.token === token ? { ...item, status: 'active', paid: true, created_at: Math.floor(Date.now() / 1000) } : item,
     );
     this.storage.saveJobs(envelope);
+  }
+
+  activateByPaymentId(paymentId: string): 'active' | 'not_found' {
+    const envelope = this.storage.readJobs();
+    let found = false;
+    envelope.jobs = envelope.jobs.map((item) => {
+      if (item.payment_id !== paymentId) {
+        return item;
+      }
+      found = true;
+      if (item.status === 'active') {
+        return item;
+      }
+      return { ...item, status: 'active', paid: true, created_at: Math.floor(Date.now() / 1000) };
+    });
+    if (!found) {
+      return 'not_found';
+    }
+    this.storage.saveJobs(envelope);
+    return 'active';
   }
 
   activeCount(): number {

@@ -7,6 +7,9 @@ declare class CreatePaymentBody {
     public_contacts: string;
     token: string;
 }
+declare class ConfirmPaymentQuery {
+    payment_id: string;
+}
 export declare class PaymentsController {
     private readonly paymentsService;
     constructor(paymentsService: PaymentsService);
@@ -24,5 +27,8 @@ export declare class PaymentsController {
     }, request: Request): Promise<{
         status: string;
     }>;
+    confirm(query: ConfirmPaymentQuery): {
+        status: "active" | "not_found";
+    };
 }
 export {};

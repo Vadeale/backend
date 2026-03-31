@@ -10,27 +10,61 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate required variables
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ vars.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          PORT: ${{ vars.PORT }}
+          STORAGE_ROOT: ${{ vars.STORAGE_ROOT }}
+          YOOKASSA_SHOP_ID: ${{ vars.YOOKASSA_SHOP_ID }}
+          YOOKASSA_SECRET_KEY: ${{ vars.YOOKASSA_SECRET_KEY }}
+          PAYMENT_RETURN_URL: ${{ vars.PAYMENT_RETURN_URL }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          DB_USER: ${{ vars.DB_USER }}
+          DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_SYNCHRONIZE: ${{ vars.DB_SYNCHRONIZE }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
+        run: |
+          set -e
+          required_vars=(
+            DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_PORT
+            PORT STORAGE_ROOT YOOKASSA_SHOP_ID YOOKASSA_SECRET_KEY PAYMENT_RETURN_URL
+            DB_HOST DB_PORT DB_USER DB_PASSWORD DB_NAME DB_SYNCHRONIZE
+            JWT_SECRET JWT_EXPIRES_IN
+          )
+          for name in "${required_vars[@]}"; do
+            if [ -z "${!name}" ]; then
+              echo "Missing required GitHub variable: $name"
+              exit 1
+            fi
+          done
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          PORT: ${{ secrets.PORT }}
-          STORAGE_ROOT: ${{ secrets.STORAGE_ROOT }}
-          YOOKASSA_SHOP_ID: ${{ secrets.YOOKASSA_SHOP_ID }}
-          YOOKASSA_SECRET_KEY: ${{ secrets.YOOKASSA_SECRET_KEY }}
-          PAYMENT_RETURN_URL: ${{ secrets.PAYMENT_RETURN_URL }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_SYNCHRONIZE: ${{ secrets.DB_SYNCHRONIZE }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+          PORT: ${{ vars.PORT }}
+          STORAGE_ROOT: ${{ vars.STORAGE_ROOT }}
+          YOOKASSA_SHOP_ID: ${{ vars.YOOKASSA_SHOP_ID }}
+          YOOKASSA_SECRET_KEY: ${{ vars.YOOKASSA_SECRET_KEY }}
+          PAYMENT_RETURN_URL: ${{ vars.PAYMENT_RETURN_URL }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          DB_USER: ${{ vars.DB_USER }}
+          DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_SYNCHRONIZE: ${{ vars.DB_SYNCHRONIZE }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
+          host: ${{ vars.DEPLOY_HOST }}
+          username: ${{ vars.DEPLOY_USER }}
+          key: ${{ vars.DEPLOY_SSH_KEY }}
+          port: ${{ vars.DEPLOY_PORT }}
           envs: PORT,STORAGE_ROOT,YOOKASSA_SHOP_ID,YOOKASSA_SECRET_KEY,PAYMENT_RETURN_URL,DB_HOST,DB_PORT,DB_USER,DB_PASSWORD,DB_NAME,DB_SYNCHRONIZE,JWT_SECRET,JWT_EXPIRES_IN
           script: |
             set -e

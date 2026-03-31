@@ -23,4 +23,7 @@ export declare class PaymentsService {
         status: string;
     }>;
     signDebugPayload(raw: string): string;
+    confirmPayment(paymentId: string): {
+        status: 'active' | 'not_found';
+    };
 }

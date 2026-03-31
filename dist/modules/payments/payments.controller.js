@@ -43,6 +43,13 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreatePaymentBody.prototype, "token", void 0);
+class ConfirmPaymentQuery {
+}
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ConfirmPaymentQuery.prototype, "payment_id", void 0);
 let PaymentsController = class PaymentsController {
     constructor(paymentsService) {
         this.paymentsService = paymentsService;
@@ -53,6 +60,9 @@ let PaymentsController = class PaymentsController {
     webhook(body, request) {
         this.paymentsService.signDebugPayload(JSON.stringify(request.body));
         return this.paymentsService.processWebhook(body);
+    }
+    confirm(query) {
+        return this.paymentsService.confirmPayment(query.payment_id);
     }
 };
 exports.PaymentsController = PaymentsController;
@@ -71,6 +81,13 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], PaymentsController.prototype, "webhook", null);
+__decorate([
+    (0, common_1.Get)('confirm'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ConfirmPaymentQuery]),
+    __metadata("design:returntype", void 0)
+], PaymentsController.prototype, "confirm", null);
 exports.PaymentsController = PaymentsController = __decorate([
     (0, common_1.Controller)('api/payments'),
     __metadata("design:paramtypes", [payments_service_1.PaymentsService])

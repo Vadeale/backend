@@ -17,7 +17,9 @@ export declare class JobsService {
     }, file?: Express.Multer.File): {
         token: string;
     };
+    attachPaymentId(token: string, paymentId: string): void;
     activateByToken(token: string): void;
+    activateByPaymentId(paymentId: string): 'active' | 'not_found';
     activeCount(): number;
 }
 export {};

@@ -20,7 +20,8 @@ export class PaymentsService {
     }
 
     const paymentId = randomUUID();
-    const redirect_url = `${process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/'}?payment_id=${paymentId}`;
+    this.jobsService.attachPaymentId(payload.token, paymentId);
+    const redirect_url = `${process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/payment-result'}?payment_id=${paymentId}`;
     return { redirect_url, payment_id: paymentId };
   }
 
@@ -36,5 +37,10 @@ export class PaymentsService {
 
   signDebugPayload(raw: string): string {
     return createHash('sha256').update(raw).digest('hex');
+  }
+
+  confirmPayment(paymentId: string): { status: 'active' | 'not_found' } {
+    const status = this.jobsService.activateByPaymentId(paymentId);
+    return { status };
   }
 }
