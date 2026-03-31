@@ -15,6 +15,8 @@ export declare class PaymentsService {
     processWebhook(payload: {
         event?: string;
         object?: {
+            id?: string;
+            status?: string;
             metadata?: {
                 token?: string;
             };
@@ -24,6 +26,8 @@ export declare class PaymentsService {
     }>;
     signDebugPayload(raw: string): string;
     confirmPayment(paymentId: string): Promise<{
-        status: 'active' | 'not_found';
+        status: 'active' | 'waiting_payment' | 'not_found';
     }>;
+    private fetchPaymentStatus;
+    private getAuthHeader;
 }

@@ -20,6 +20,8 @@ export declare class PaymentsController {
     webhook(body: {
         event?: string;
         object?: {
+            id?: string;
+            status?: string;
             metadata?: {
                 token?: string;
             };
@@ -28,7 +30,7 @@ export declare class PaymentsController {
         status: string;
     }>;
     confirm(query: ConfirmPaymentQuery): Promise<{
-        status: "active" | "not_found";
+        status: "active" | "waiting_payment" | "not_found";
     }>;
 }
 export {};

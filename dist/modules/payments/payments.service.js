@@ -23,16 +23,45 @@ let PaymentsService = class PaymentsService {
         if (!shopId || !secretKey) {
             throw new Error('YOOKASSA credentials are not configured');
         }
-        const paymentId = (0, node_crypto_1.randomUUID)();
+        const returnUrl = process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/payment-result';
+        const body = {
+            amount: { value: '10.00', currency: 'RUB' },
+            capture: true,
+            confirmation: {
+                type: 'redirect',
+                return_url: returnUrl,
+            },
+            description: `Размещение объявления (${payload.category})`,
+            metadata: { token: payload.token },
+        };
+        const response = await fetch('https://api.yookassa.ru/v3/payments', {
+            method: 'POST',
+            headers: {
+                Authorization: this.getAuthHeader(shopId, secretKey),
+                'Content-Type': 'application/json',
+                'Idempotence-Key': (0, node_crypto_1.randomUUID)(),
+            },
+            body: JSON.stringify(body),
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to create YooKassa payment: HTTP ${response.status}`);
+        }
+        const payment = (await response.json());
+        const paymentId = payment.id;
+        const confirmationUrl = payment.confirmation?.confirmation_url;
+        if (!paymentId || !confirmationUrl) {
+            throw new Error('YooKassa response does not include payment id or confirmation url');
+        }
         await this.jobsService.attachPaymentId(payload.token, paymentId);
-        const redirect_url = `${process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/payment-result'}?payment_id=${paymentId}`;
-        return { redirect_url, payment_id: paymentId };
+        return { redirect_url: confirmationUrl, payment_id: paymentId };
     }
     async processWebhook(payload) {
-        if (payload.event === 'payment.succeeded') {
-            const token = payload.object?.metadata?.token;
-            if (token) {
-                await this.jobsService.activateByToken(token);
+        if (payload.event === 'payment.succeeded' && payload.object?.status === 'succeeded') {
+            if (payload.object.id) {
+                await this.jobsService.activateByPaymentId(payload.object.id);
+            }
+            else if (payload.object.metadata?.token) {
+                await this.jobsService.activateByToken(payload.object.metadata.token);
             }
         }
         return { status: 'success' };
@@ -41,8 +70,37 @@ let PaymentsService = class PaymentsService {
         return (0, node_crypto_1.createHash)('sha256').update(raw).digest('hex');
     }
     async confirmPayment(paymentId) {
+        const remoteStatus = await this.fetchPaymentStatus(paymentId);
+        if (remoteStatus === 'not_found') {
+            return { status: 'not_found' };
+        }
+        if (remoteStatus !== 'succeeded') {
+            return { status: 'waiting_payment' };
+        }
         const status = await this.jobsService.activateByPaymentId(paymentId);
         return { status };
+    }
+    async fetchPaymentStatus(paymentId) {
+        const shopId = process.env.YOOKASSA_SHOP_ID;
+        const secretKey = process.env.YOOKASSA_SECRET_KEY;
+        if (!shopId || !secretKey) {
+            throw new Error('YOOKASSA credentials are not configured');
+        }
+        const response = await fetch(`https://api.yookassa.ru/v3/payments/${paymentId}`, {
+            method: 'GET',
+            headers: { Authorization: this.getAuthHeader(shopId, secretKey) },
+        });
+        if (response.status === 404) {
+            return 'not_found';
+        }
+        if (!response.ok) {
+            throw new Error(`Failed to fetch YooKassa payment status: HTTP ${response.status}`);
+        }
+        const payment = (await response.json());
+        return payment.status;
+    }
+    getAuthHeader(shopId, secretKey) {
+        return `Basic ${Buffer.from(`${shopId}:${secretKey}`).toString('base64')}`;
     }
 };
 exports.PaymentsService = PaymentsService;

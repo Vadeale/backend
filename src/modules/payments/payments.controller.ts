@@ -37,7 +37,10 @@ export class PaymentsController {
   }
 
   @Post('webhook')
-  async webhook(@Body() body: { event?: string; object?: { metadata?: { token?: string } } }, @Req() request: Request) {
+  async webhook(
+    @Body() body: { event?: string; object?: { id?: string; status?: string; metadata?: { token?: string } } },
+    @Req() request: Request,
+  ) {
     this.paymentsService.signDebugPayload(JSON.stringify(request.body));
     return this.paymentsService.processWebhook(body);
   }
