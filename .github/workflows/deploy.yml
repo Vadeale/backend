@@ -86,10 +86,10 @@ jobs:
             JWT_SECRET=${JWT_SECRET}
             JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
             EOF
-            chown -R deploy:deploy /var/www/zadashka/backend
-            rm -rf node_modules
+            rm -rf node_modules dist
             docker compose up -d
             npm ci
             npm run build
-            pm2 restart zadashka-backend --update-env || pm2 start dist/main.js --name zadashka-backend
+            pm2 delete zadashka-backend || true
+            pm2 start dist/main.js --name zadashka-backend --update-env
             pm2 save

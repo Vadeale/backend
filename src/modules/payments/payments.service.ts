@@ -26,7 +26,7 @@ export class PaymentsService {
       throw new Error('YOOKASSA credentials are not configured');
     }
 
-    const returnUrl = process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/payment-result';
+    const returnUrl = process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/';
     const body = {
       amount: { value: '10.00', currency: 'RUB' },
       capture: true,
