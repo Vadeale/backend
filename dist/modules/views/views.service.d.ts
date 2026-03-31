@@ -1,9 +1,9 @@
-import { FileStorageService } from '../storage/file-storage.service';
+import { JobsService } from '../jobs/jobs.service';
 export declare class ViewsService {
-    private readonly storage;
-    constructor(storage: FileStorageService);
-    count(token: string, action: 'view' | 'respond', remoteIp: string): {
+    private readonly jobsService;
+    constructor(jobsService: JobsService);
+    count(token: string, action: 'view' | 'respond', remoteIp: string): Promise<{
         success: boolean;
         responses: number;
-    };
+    }>;
 }

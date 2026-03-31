@@ -11,7 +11,9 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const auth_module_1 = require("./auth/auth.module");
+const job_entity_1 = require("./jobs/job.entity");
 const jobs_module_1 = require("./jobs/jobs.module");
+const pending_job_entity_1 = require("./jobs/pending-job.entity");
 const payments_module_1 = require("./payments/payments.module");
 const stats_module_1 = require("./stats/stats.module");
 const user_entity_1 = require("./users/user.entity");
@@ -30,7 +32,7 @@ exports.AppModule = AppModule = __decorate([
                 username: process.env.DB_USER ?? 'postgres',
                 password: process.env.DB_PASSWORD ?? 'postgres',
                 database: process.env.DB_NAME ?? 'app_db',
-                entities: [user_entity_1.User],
+                entities: [user_entity_1.User, job_entity_1.Job, pending_job_entity_1.PendingJob],
                 synchronize: (process.env.DB_SYNCHRONIZE ?? 'true') === 'true',
             }),
             auth_module_1.AuthModule,

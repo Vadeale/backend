@@ -24,7 +24,7 @@ let PaymentsService = class PaymentsService {
             throw new Error('YOOKASSA credentials are not configured');
         }
         const paymentId = (0, node_crypto_1.randomUUID)();
-        this.jobsService.attachPaymentId(payload.token, paymentId);
+        await this.jobsService.attachPaymentId(payload.token, paymentId);
         const redirect_url = `${process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/payment-result'}?payment_id=${paymentId}`;
         return { redirect_url, payment_id: paymentId };
     }
@@ -32,7 +32,7 @@ let PaymentsService = class PaymentsService {
         if (payload.event === 'payment.succeeded') {
             const token = payload.object?.metadata?.token;
             if (token) {
-                this.jobsService.activateByToken(token);
+                await this.jobsService.activateByToken(token);
             }
         }
         return { status: 'success' };
@@ -40,8 +40,8 @@ let PaymentsService = class PaymentsService {
     signDebugPayload(raw) {
         return (0, node_crypto_1.createHash)('sha256').update(raw).digest('hex');
     }
-    confirmPayment(paymentId) {
-        const status = this.jobsService.activateByPaymentId(paymentId);
+    async confirmPayment(paymentId) {
+        const status = await this.jobsService.activateByPaymentId(paymentId);
         return { status };
     }
 };

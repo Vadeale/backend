@@ -6,8 +6,8 @@ export class StatsController {
   constructor(private readonly statsService: StatsService) {}
 
   @Get('active-jobs')
-  activeJobs() {
-    return { value: this.statsService.activeJobs() };
+  async activeJobs() {
+    return { value: await this.statsService.activeJobs() };
   }
 
   @Get('visitors-today')

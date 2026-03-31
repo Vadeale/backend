@@ -56,13 +56,13 @@ let JobsController = class JobsController {
     constructor(jobsService) {
         this.jobsService = jobsService;
     }
-    list(query) {
+    async list(query) {
         const page = Number(query.page ?? 1);
         const limit = Number(query.limit ?? 10);
         const category = String(query.category ?? 'all');
         return this.jobsService.list(page, limit, category);
     }
-    create(body, file) {
+    async create(body, file) {
         return this.jobsService.create(body, file);
     }
 };
@@ -72,7 +72,7 @@ __decorate([
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [ListJobsQuery]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], JobsController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)(),
@@ -81,7 +81,7 @@ __decorate([
     __param(1, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [CreateJobBody, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], JobsController.prototype, "create", null);
 exports.JobsController = JobsController = __decorate([
     (0, common_1.Controller)('api/jobs'),

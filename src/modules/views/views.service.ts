@@ -1,25 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { createHash } from 'node:crypto';
-import { FileStorageService } from '../storage/file-storage.service';
+import { JobsService } from '../jobs/jobs.service';
 
 @Injectable()
 export class ViewsService {
-  constructor(private readonly storage: FileStorageService) {}
+  constructor(private readonly jobsService: JobsService) {}
 
-  count(token: string, action: 'view' | 'respond', remoteIp: string): { success: boolean; responses: number } {
-    const viewerId = createHash('md5').update(remoteIp).digest('hex');
-    const jobs = this.storage.readJobs();
-    let responses = 0;
-    jobs.jobs = jobs.jobs.map((item) => {
-      if (item.token !== token) return item;
-      const responders = Array.isArray(item.responders) ? item.responders : [];
-      const viewers = Array.isArray(item.viewers) ? item.viewers : [];
-      if (action === 'respond' && !responders.includes(viewerId)) responders.push(viewerId);
-      if (action === 'view' && !viewers.includes(viewerId)) viewers.push(viewerId);
-      responses = responders.length;
-      return { ...item, responders, viewers, responses, unique_views: viewers.length };
-    });
-    this.storage.saveJobs(jobs);
+  async count(token: string, action: 'view' | 'respond', remoteIp: string): Promise<{ success: boolean; responses: number }> {
+    const _unusedIp = remoteIp;
+    if (action === 'respond') {
+      const responses = await this.jobsService.incrementResponses(token);
+      return { success: true, responses };
+    }
+    const responses = await this.jobsService.getResponses(token);
     return { success: true, responses };
   }
 }

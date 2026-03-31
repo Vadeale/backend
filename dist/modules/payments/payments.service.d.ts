@@ -23,7 +23,7 @@ export declare class PaymentsService {
         status: string;
     }>;
     signDebugPayload(raw: string): string;
-    confirmPayment(paymentId: string): {
+    confirmPayment(paymentId: string): Promise<{
         status: 'active' | 'not_found';
-    };
+    }>;
 }

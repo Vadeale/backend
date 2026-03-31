@@ -32,18 +32,18 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post()
-  create(@Body() body: CreatePaymentBody) {
+  async create(@Body() body: CreatePaymentBody) {
     return this.paymentsService.createPayment(body);
   }
 
   @Post('webhook')
-  webhook(@Body() body: { event?: string; object?: { metadata?: { token?: string } } }, @Req() request: Request) {
+  async webhook(@Body() body: { event?: string; object?: { metadata?: { token?: string } } }, @Req() request: Request) {
     this.paymentsService.signDebugPayload(JSON.stringify(request.body));
     return this.paymentsService.processWebhook(body);
   }
 
   @Get('confirm')
-  confirm(@Query() query: ConfirmPaymentQuery) {
+  async confirm(@Query() query: ConfirmPaymentQuery) {
     return this.paymentsService.confirmPayment(query.payment_id);
   }
 }

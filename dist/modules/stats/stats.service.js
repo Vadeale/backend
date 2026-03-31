@@ -16,7 +16,7 @@ let StatsService = class StatsService {
     constructor(jobsService) {
         this.jobsService = jobsService;
     }
-    activeJobs() {
+    async activeJobs() {
         return this.jobsService.activeCount();
     }
     visitorsToday() {

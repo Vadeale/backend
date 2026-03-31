@@ -11,35 +11,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ViewsService = void 0;
 const common_1 = require("@nestjs/common");
-const node_crypto_1 = require("node:crypto");
-const file_storage_service_1 = require("../storage/file-storage.service");
+const jobs_service_1 = require("../jobs/jobs.service");
 let ViewsService = class ViewsService {
-    constructor(storage) {
-        this.storage = storage;
+    constructor(jobsService) {
+        this.jobsService = jobsService;
     }
-    count(token, action, remoteIp) {
-        const viewerId = (0, node_crypto_1.createHash)('md5').update(remoteIp).digest('hex');
-        const jobs = this.storage.readJobs();
-        let responses = 0;
-        jobs.jobs = jobs.jobs.map((item) => {
-            if (item.token !== token)
-                return item;
-            const responders = Array.isArray(item.responders) ? item.responders : [];
-            const viewers = Array.isArray(item.viewers) ? item.viewers : [];
-            if (action === 'respond' && !responders.includes(viewerId))
-                responders.push(viewerId);
-            if (action === 'view' && !viewers.includes(viewerId))
-                viewers.push(viewerId);
-            responses = responders.length;
-            return { ...item, responders, viewers, responses, unique_views: viewers.length };
-        });
-        this.storage.saveJobs(jobs);
+    async count(token, action, remoteIp) {
+        const _unusedIp = remoteIp;
+        if (action === 'respond') {
+            const responses = await this.jobsService.incrementResponses(token);
+            return { success: true, responses };
+        }
+        const responses = await this.jobsService.getResponses(token);
         return { success: true, responses };
     }
 };
 exports.ViewsService = ViewsService;
 exports.ViewsService = ViewsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [file_storage_service_1.FileStorageService])
+    __metadata("design:paramtypes", [jobs_service_1.JobsService])
 ], ViewsService);
 //# sourceMappingURL=views.service.js.map

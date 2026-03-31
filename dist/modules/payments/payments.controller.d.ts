@@ -27,8 +27,8 @@ export declare class PaymentsController {
     }, request: Request): Promise<{
         status: string;
     }>;
-    confirm(query: ConfirmPaymentQuery): {
+    confirm(query: ConfirmPaymentQuery): Promise<{
         status: "active" | "not_found";
-    };
+    }>;
 }
 export {};

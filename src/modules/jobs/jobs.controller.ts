@@ -36,7 +36,7 @@ export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @Get()
-  list(@Query() query: ListJobsQuery) {
+  async list(@Query() query: ListJobsQuery) {
     const page = Number(query.page ?? 1);
     const limit = Number(query.limit ?? 10);
     const category = String(query.category ?? 'all');
@@ -45,7 +45,7 @@ export class JobsController {
 
   @Post()
   @UseInterceptors(FileInterceptor('image'))
-  create(@Body() body: CreateJobBody, @UploadedFile() file?: Express.Multer.File) {
+  async create(@Body() body: CreateJobBody, @UploadedFile() file?: Express.Multer.File) {
     return this.jobsService.create(body, file);
   }
 }

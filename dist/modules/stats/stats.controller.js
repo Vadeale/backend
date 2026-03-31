@@ -16,8 +16,8 @@ let StatsController = class StatsController {
     constructor(statsService) {
         this.statsService = statsService;
     }
-    activeJobs() {
-        return { value: this.statsService.activeJobs() };
+    async activeJobs() {
+        return { value: await this.statsService.activeJobs() };
     }
     visitorsToday() {
         return { value: this.statsService.visitorsToday() };
@@ -28,7 +28,7 @@ __decorate([
     (0, common_1.Get)('active-jobs'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], StatsController.prototype, "activeJobs", null);
 __decorate([
     (0, common_1.Get)('visitors-today'),

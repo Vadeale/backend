@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { Job } from './jobs/job.entity';
 import { JobsModule } from './jobs/jobs.module';
+import { PendingJob } from './jobs/pending-job.entity';
 import { PaymentsModule } from './payments/payments.module';
 import { StatsModule } from './stats/stats.module';
 import { User } from './users/user.entity';
@@ -18,7 +20,7 @@ import { ViewsModule } from './views/views.module';
       username: process.env.DB_USER ?? 'postgres',
       password: process.env.DB_PASSWORD ?? 'postgres',
       database: process.env.DB_NAME ?? 'app_db',
-      entities: [User],
+      entities: [User, Job, PendingJob],
       synchronize: (process.env.DB_SYNCHRONIZE ?? 'true') === 'true',
     }),
     AuthModule,

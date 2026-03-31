@@ -8,15 +8,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobsModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const storage_module_1 = require("../storage/storage.module");
+const job_entity_1 = require("./job.entity");
 const jobs_controller_1 = require("./jobs.controller");
 const jobs_service_1 = require("./jobs.service");
+const pending_job_entity_1 = require("./pending-job.entity");
 let JobsModule = class JobsModule {
 };
 exports.JobsModule = JobsModule;
 exports.JobsModule = JobsModule = __decorate([
     (0, common_1.Module)({
-        imports: [storage_module_1.StorageModule],
+        imports: [storage_module_1.StorageModule, typeorm_1.TypeOrmModule.forFeature([job_entity_1.Job, pending_job_entity_1.PendingJob])],
         controllers: [jobs_controller_1.JobsController],
         providers: [jobs_service_1.JobsService],
         exports: [jobs_service_1.JobsService],

@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'node:crypto';
 import { extname, join } from 'node:path';
 import { writeFileSync } from 'node:fs';
+import { DataSource, MoreThan, Repository } from 'typeorm';
 import { FileStorageService } from '../storage/file-storage.service';
+import { Job } from './job.entity';
+import { PendingJob } from './pending-job.entity';
 
 type JobRecord = Record<string, unknown>;
 
@@ -10,27 +14,46 @@ const JOB_LIFETIME_SECONDS = 10 * 24 * 3600;
 
 @Injectable()
 export class JobsService {
-  constructor(private readonly storage: FileStorageService) {}
+  constructor(
+    private readonly storage: FileStorageService,
+    private readonly dataSource: DataSource,
+    @InjectRepository(Job) private readonly jobsRepository: Repository<Job>,
+    @InjectRepository(PendingJob) private readonly pendingJobsRepository: Repository<PendingJob>,
+  ) {}
 
-  list(page: number, limit: number, category: string): { success: boolean; count: number; total: number; jobs: JobRecord[] } {
-    const now = Math.floor(Date.now() / 1000);
-    const jobs = this.storage
-      .readJobs()
-      .jobs.filter((item) => {
-        const createdAt = Number(item.created_at ?? item.time ?? 0);
-        const expires = Number(item.expires ?? createdAt + JOB_LIFETIME_SECONDS);
-        const status = String(item.status ?? 'active');
-        const itemCategory = String(item.category ?? 'other');
-        return status === 'active' && expires > now && (category === 'all' || category === itemCategory);
-      })
-      .reverse();
+  async list(page: number, limit: number, category: string): Promise<{ success: boolean; count: number; total: number; jobs: JobRecord[] }> {
     const offset = Math.max(0, (page - 1) * limit);
-    const chunk = jobs.slice(offset, offset + limit);
-    return { success: true, count: chunk.length, total: jobs.length, jobs: chunk };
+    const where = {
+      status: 'active',
+      expiresAt: MoreThan(new Date()),
+      ...(category === 'all' ? {} : { category }),
+    };
+    const [rows, total] = await this.jobsRepository.findAndCount({
+      where,
+      order: { createdAt: 'DESC' },
+      skip: offset,
+      take: limit,
+    });
+    const jobs = rows.map((item) => ({
+      token: item.token,
+      text: item.text,
+      category: item.category,
+      public_contacts: item.publicContacts,
+      employer_email: item.employerEmail,
+      email: item.employerEmail,
+      created_at: Math.floor(item.createdAt.getTime() / 1000),
+      expires: Math.floor(item.expiresAt.getTime() / 1000),
+      status: item.status,
+      image: item.image,
+      responses: item.responses,
+    }));
+    return { success: true, count: jobs.length, total, jobs };
   }
 
-  create(dto: { text: string; employer_email: string; public_contacts: string; category: string }, file?: Express.Multer.File): { token: string } {
-    const createdAt = Math.floor(Date.now() / 1000);
+  async create(
+    dto: { text: string; employer_email: string; public_contacts: string; category: string },
+    file?: Express.Multer.File,
+  ): Promise<{ token: string }> {
     let imagePath: string | null = null;
     if (file) {
       const uploads = this.storage.ensureUploadsDir();
@@ -40,63 +63,87 @@ export class JobsService {
     }
 
     const token = randomBytes(16).toString('hex');
-    const deleteKey = randomBytes(16).toString('hex');
-    const envelope = this.storage.readJobs();
-    envelope.jobs.push({
+    await this.pendingJobsRepository.insert({
       text: dto.text,
-      employer_email: dto.employer_email,
-      email: dto.employer_email,
-      public_contacts: dto.public_contacts,
-      category: dto.category || 'other',
-      created_at: createdAt,
-      expires: createdAt + JOB_LIFETIME_SECONDS,
+      employerEmail: dto.employer_email,
+      publicContacts: dto.public_contacts,
+      category: dto.category ?? 'other',
       token,
-      delete_key: deleteKey,
-      status: 'pending_payment',
+      status: 'pending',
       image: imagePath,
-      viewers: [],
-      responders: [],
-      responses: 0,
     });
-    this.storage.saveJobs(envelope);
     return { token };
   }
 
-  attachPaymentId(token: string, paymentId: string): void {
-    const envelope = this.storage.readJobs();
-    envelope.jobs = envelope.jobs.map((item) => (item.token === token ? { ...item, payment_id: paymentId } : item));
-    this.storage.saveJobs(envelope);
+  async attachPaymentId(token: string, paymentId: string): Promise<void> {
+    await this.pendingJobsRepository.update({ token }, { paymentId });
   }
 
-  activateByToken(token: string): void {
-    const envelope = this.storage.readJobs();
-    envelope.jobs = envelope.jobs.map((item) =>
-      item.token === token ? { ...item, status: 'active', paid: true, created_at: Math.floor(Date.now() / 1000) } : item,
-    );
-    this.storage.saveJobs(envelope);
-  }
-
-  activateByPaymentId(paymentId: string): 'active' | 'not_found' {
-    const envelope = this.storage.readJobs();
-    let found = false;
-    envelope.jobs = envelope.jobs.map((item) => {
-      if (item.payment_id !== paymentId) {
-        return item;
-      }
-      found = true;
-      if (item.status === 'active') {
-        return item;
-      }
-      return { ...item, status: 'active', paid: true, created_at: Math.floor(Date.now() / 1000) };
-    });
-    if (!found) {
+  async activateByToken(token: string): Promise<'active' | 'not_found'> {
+    const pending = await this.pendingJobsRepository.findOne({ where: { token } });
+    if (!pending) {
       return 'not_found';
     }
-    this.storage.saveJobs(envelope);
-    return 'active';
+    return this.activatePending(pending);
   }
 
-  activeCount(): number {
-    return this.list(1, Number.MAX_SAFE_INTEGER, 'all').total;
+  async activateByPaymentId(paymentId: string): Promise<'active' | 'not_found'> {
+    const pending = await this.pendingJobsRepository.findOne({ where: { paymentId } });
+    if (!pending) {
+      return 'not_found';
+    }
+    return this.activatePending(pending);
+  }
+
+  async activeCount(): Promise<number> {
+    return this.jobsRepository.count({
+      where: { status: 'active', expiresAt: MoreThan(new Date()) },
+    });
+  }
+
+  async incrementResponses(token: string): Promise<number> {
+    const row = await this.jobsRepository.findOne({ where: { token } });
+    if (!row) {
+      return 0;
+    }
+    row.responses += 1;
+    await this.jobsRepository.save(row);
+    return row.responses;
+  }
+
+  async getResponses(token: string): Promise<number> {
+    const row = await this.jobsRepository.findOne({ where: { token } });
+    return row?.responses ?? 0;
+  }
+
+  private async activatePending(pending: PendingJob): Promise<'active' | 'not_found'> {
+    await this.dataSource.transaction(async (manager) => {
+      const pendingRepo = manager.getRepository(PendingJob);
+      const jobsRepo = manager.getRepository(Job);
+      const fresh = await pendingRepo.findOne({ where: { id: pending.id } });
+      if (!fresh) {
+        return;
+      }
+      if (fresh.status === 'processed') {
+        return;
+      }
+      const existing = await jobsRepo.findOne({ where: { token: fresh.token } });
+      if (!existing) {
+        await jobsRepo.insert({
+          token: fresh.token,
+          text: fresh.text,
+          employerEmail: fresh.employerEmail,
+          publicContacts: fresh.publicContacts,
+          category: fresh.category,
+          status: 'active',
+          responses: 0,
+          image: fresh.image,
+          expiresAt: new Date(Date.now() + JOB_LIFETIME_SECONDS * 1000),
+        });
+      }
+      fresh.status = 'processed';
+      await pendingRepo.save(fresh);
+    });
+    return 'active';
   }
 }

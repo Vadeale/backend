@@ -20,7 +20,7 @@ export class PaymentsService {
     }
 
     const paymentId = randomUUID();
-    this.jobsService.attachPaymentId(payload.token, paymentId);
+    await this.jobsService.attachPaymentId(payload.token, paymentId);
     const redirect_url = `${process.env.PAYMENT_RETURN_URL ?? 'https://zadashka.ru/payment-result'}?payment_id=${paymentId}`;
     return { redirect_url, payment_id: paymentId };
   }
@@ -29,7 +29,7 @@ export class PaymentsService {
     if (payload.event === 'payment.succeeded') {
       const token = payload.object?.metadata?.token;
       if (token) {
-        this.jobsService.activateByToken(token);
+        await this.jobsService.activateByToken(token);
       }
     }
     return { status: 'success' };
@@ -39,8 +39,8 @@ export class PaymentsService {
     return createHash('sha256').update(raw).digest('hex');
   }
 
-  confirmPayment(paymentId: string): { status: 'active' | 'not_found' } {
-    const status = this.jobsService.activateByPaymentId(paymentId);
+  async confirmPayment(paymentId: string): Promise<{ status: 'active' | 'not_found' }> {
+    const status = await this.jobsService.activateByPaymentId(paymentId);
     return { status };
   }
 }

@@ -5,7 +5,7 @@ import { JobsService } from '../jobs/jobs.service';
 export class StatsService {
   constructor(private readonly jobsService: JobsService) {}
 
-  activeJobs(): number {
+  async activeJobs(): Promise<number> {
     return this.jobsService.activeCount();
   }
 
