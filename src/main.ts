@@ -10,6 +10,13 @@ async function bootstrap(): Promise<void> {
   app.enableCors();
   const storageRoot = resolve(process.cwd(), process.env.STORAGE_ROOT ?? './storage');
   app.use('/storage', express.static(storageRoot));
+  // Backward compatibility for historical paths with different casing.
+  app.use('/storage/uploads', express.static(resolve(storageRoot, 'uploads')));
+  app.use('/storage/uploads', express.static(resolve(storageRoot, 'Uploads')));
+  app.use('/uploads', express.static(resolve(storageRoot, 'uploads')));
+  app.use('/uploads', express.static(resolve(storageRoot, 'Uploads')));
+  app.use('/Uploads', express.static(resolve(storageRoot, 'Uploads')));
+  app.use('/Uploads', express.static(resolve(storageRoot, 'uploads')));
   await app.listen(process.env.PORT ? Number(process.env.PORT) : 3000);
 }
 

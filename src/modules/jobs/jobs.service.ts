@@ -151,6 +151,8 @@ export class JobsService {
     if (!value) return null;
     if (value.startsWith('http://') || value.startsWith('https://')) return value;
     if (value.startsWith('/storage/uploads/')) return value;
+    if (value.startsWith('/Uploads/')) return `/storage/uploads/${value.slice('/Uploads/'.length)}`;
+    if (value.startsWith('/uploads/')) return `/storage/uploads/${value.slice('/uploads/'.length)}`;
     if (value.startsWith('Uploads/')) return `/storage/uploads/${value.slice('Uploads/'.length)}`;
     if (value.startsWith('uploads/')) return `/storage/uploads/${value.slice('uploads/'.length)}`;
     return value.startsWith('/') ? value : `/storage/uploads/${value}`;

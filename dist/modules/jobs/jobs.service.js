@@ -150,6 +150,10 @@ let JobsService = class JobsService {
             return value;
         if (value.startsWith('/storage/uploads/'))
             return value;
+        if (value.startsWith('/Uploads/'))
+            return `/storage/uploads/${value.slice('/Uploads/'.length)}`;
+        if (value.startsWith('/uploads/'))
+            return `/storage/uploads/${value.slice('/uploads/'.length)}`;
         if (value.startsWith('Uploads/'))
             return `/storage/uploads/${value.slice('Uploads/'.length)}`;
         if (value.startsWith('uploads/'))

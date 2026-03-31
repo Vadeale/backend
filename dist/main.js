@@ -11,6 +11,12 @@ async function bootstrap() {
     app.enableCors();
     const storageRoot = (0, node_path_1.resolve)(process.cwd(), process.env.STORAGE_ROOT ?? './storage');
     app.use('/storage', express.static(storageRoot));
+    app.use('/storage/uploads', express.static((0, node_path_1.resolve)(storageRoot, 'uploads')));
+    app.use('/storage/uploads', express.static((0, node_path_1.resolve)(storageRoot, 'Uploads')));
+    app.use('/uploads', express.static((0, node_path_1.resolve)(storageRoot, 'uploads')));
+    app.use('/uploads', express.static((0, node_path_1.resolve)(storageRoot, 'Uploads')));
+    app.use('/Uploads', express.static((0, node_path_1.resolve)(storageRoot, 'Uploads')));
+    app.use('/Uploads', express.static((0, node_path_1.resolve)(storageRoot, 'uploads')));
     await app.listen(process.env.PORT ? Number(process.env.PORT) : 3000);
 }
 void bootstrap();
