@@ -30,5 +30,6 @@ export declare class JobsService {
     incrementResponses(token: string): Promise<number>;
     getResponses(token: string): Promise<number>;
     private activatePending;
+    private normalizeImagePath;
 }
 export {};

@@ -44,7 +44,7 @@ export class JobsService {
       created_at: Math.floor(item.createdAt.getTime() / 1000),
       expires: Math.floor(item.expiresAt.getTime() / 1000),
       status: item.status,
-      image: item.image,
+      image: this.normalizeImagePath(item.image),
       responses: item.responses,
     }));
     return { success: true, count: jobs.length, total, jobs };
@@ -59,7 +59,7 @@ export class JobsService {
       const uploads = this.storage.ensureUploadsDir();
       const filename = `${Date.now()}-${randomBytes(5).toString('hex')}${extname(file.originalname || '.webp') || '.webp'}`;
       writeFileSync(join(uploads, filename), file.buffer);
-      imagePath = `Uploads/${filename}`;
+      imagePath = `/storage/uploads/${filename}`;
     }
 
     const token = randomBytes(16).toString('hex');
@@ -145,5 +145,14 @@ export class JobsService {
       await pendingRepo.save(fresh);
     });
     return 'active';
+  }
+
+  private normalizeImagePath(value: string | null): string | null {
+    if (!value) return null;
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+    if (value.startsWith('/storage/uploads/')) return value;
+    if (value.startsWith('Uploads/')) return `/storage/uploads/${value.slice('Uploads/'.length)}`;
+    if (value.startsWith('uploads/')) return `/storage/uploads/${value.slice('uploads/'.length)}`;
+    return value.startsWith('/') ? value : `/storage/uploads/${value}`;
   }
 }

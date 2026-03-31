@@ -15,7 +15,7 @@ let FileStorageService = class FileStorageService {
         this.root = process.env.STORAGE_ROOT ?? (0, node_path_1.join)(process.cwd(), '..');
         this.jobsPath = (0, node_path_1.join)(this.root, 'jobs.json');
         this.viewsPath = (0, node_path_1.join)(this.root, 'views.json');
-        this.uploadsPath = (0, node_path_1.join)(this.root, 'Uploads');
+        this.uploadsPath = (0, node_path_1.join)(this.root, 'uploads');
     }
     readJobs() {
         if (!(0, node_fs_1.existsSync)(this.jobsPath)) {

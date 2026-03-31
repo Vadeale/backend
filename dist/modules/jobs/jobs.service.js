@@ -53,7 +53,7 @@ let JobsService = class JobsService {
             created_at: Math.floor(item.createdAt.getTime() / 1000),
             expires: Math.floor(item.expiresAt.getTime() / 1000),
             status: item.status,
-            image: item.image,
+            image: this.normalizeImagePath(item.image),
             responses: item.responses,
         }));
         return { success: true, count: jobs.length, total, jobs };
@@ -64,7 +64,7 @@ let JobsService = class JobsService {
             const uploads = this.storage.ensureUploadsDir();
             const filename = `${Date.now()}-${(0, node_crypto_1.randomBytes)(5).toString('hex')}${(0, node_path_1.extname)(file.originalname || '.webp') || '.webp'}`;
             (0, node_fs_1.writeFileSync)((0, node_path_1.join)(uploads, filename), file.buffer);
-            imagePath = `Uploads/${filename}`;
+            imagePath = `/storage/uploads/${filename}`;
         }
         const token = (0, node_crypto_1.randomBytes)(16).toString('hex');
         await this.pendingJobsRepository.insert({
@@ -142,6 +142,19 @@ let JobsService = class JobsService {
             await pendingRepo.save(fresh);
         });
         return 'active';
+    }
+    normalizeImagePath(value) {
+        if (!value)
+            return null;
+        if (value.startsWith('http://') || value.startsWith('https://'))
+            return value;
+        if (value.startsWith('/storage/uploads/'))
+            return value;
+        if (value.startsWith('Uploads/'))
+            return `/storage/uploads/${value.slice('Uploads/'.length)}`;
+        if (value.startsWith('uploads/'))
+            return `/storage/uploads/${value.slice('uploads/'.length)}`;
+        return value.startsWith('/') ? value : `/storage/uploads/${value}`;
     }
 };
 exports.JobsService = JobsService;

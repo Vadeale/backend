@@ -9,7 +9,7 @@ export class FileStorageService {
   private readonly root = process.env.STORAGE_ROOT ?? join(process.cwd(), '..');
   private readonly jobsPath = join(this.root, 'jobs.json');
   private readonly viewsPath = join(this.root, 'views.json');
-  private readonly uploadsPath = join(this.root, 'Uploads');
+  private readonly uploadsPath = join(this.root, 'uploads');
 
   readJobs(): JobsEnvelope {
     if (!existsSync(this.jobsPath)) {
